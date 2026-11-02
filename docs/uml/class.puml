@@ -1,0 +1,100 @@
+@startuml
+title COLORS Lab — UML Class Diagram
+
+top to bottom direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 16
+skinparam ArrowColor #202020
+skinparam ArrowThickness 1.5
+skinparam nodesep 70
+skinparam ranksep 85
+skinparam linetype polyline
+skinparam classAttributeIconSize 0
+hide circle
+skinparam class {
+  BackgroundColor #EEEEEE
+  HeaderBackgroundColor #D5D5D5
+  BorderColor #202020
+  FontColor #111111
+}
+skinparam legend {
+  BackgroundColor #FFFFFF
+  BorderColor #666666
+  FontSize 14
+}
+
+' Logical module names map to the procedural files in READING-GUIDE.md.
+' They group existing global state and functions; they are not actual classes.
+class ColorApp <<module>> {
+  userId : Integer
+  firstName : String
+  lastName : String
+  urlBase : String
+  extension : String
+  --
+  doLogin()
+  saveCookie()
+  readCookie()
+  doLogout()
+  addColor()
+  searchColor()
+}
+
+together {
+  class LoginAPI <<module>> {
+    getRequestInfo()
+    sendResultInfoAsJson(obj)
+    returnWithError(err)
+    returnWithInfo(firstName, lastName, id)
+  }
+
+  class AddColorAPI <<module>> {
+    getRequestInfo()
+    sendResultInfoAsJson(obj)
+    returnWithError(err)
+  }
+
+  class SearchColorsAPI <<module>> {
+    getRequestInfo()
+    sendResultInfoAsJson(obj)
+    returnWithError(err)
+    returnWithInfo(searchResults)
+  }
+}
+
+together {
+  class User <<entity>> {
+    ID : Integer
+    firstName : String
+    lastName : String
+    Login : String
+    Password : String
+  }
+
+  class Color <<entity>> {
+    UserID : Integer
+    Name : String
+  }
+}
+
+ColorApp ..> LoginAPI : calls
+ColorApp ..> AddColorAPI : calls
+ColorApp ..> SearchColorsAPI : calls
+LoginAPI ..> User : looks up
+AddColorAPI ..> Color : inserts
+SearchColorsAPI ..> Color : searches
+User "1" -right- "0..*" Color : owns
+
+legend bottom
+  Read each box: name at top, attributes in middle, operations() at bottom.
+  Solid line = Association. 
+  Dashed arrow = Dependency.
+  1 = exactly one. 
+  0* = zero or more.
+  <<module>> groups functions in a source file.
+  <<entity>> models stored data.
+  Types and ownership are inferred from SQL.
+endlegend
+@enduml

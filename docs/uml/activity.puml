@@ -1,0 +1,93 @@
+@startuml
+title COLORS Lab — Activity Diagram
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam ArrowColor #202020
+skinparam ArrowThickness 1.5
+skinparam activity {
+  BackgroundColor #EEEEEE
+  BorderColor #202020
+  FontColor #111111
+  DiamondBackgroundColor #FFFFFF
+  DiamondBorderColor #202020
+  StartColor #202020
+  EndColor #202020
+  BarColor #202020
+}
+skinparam partition {
+  BorderColor #666666
+  FontColor #111111
+  BackgroundColor #FAFAFA
+}
+skinparam note {
+  BackgroundColor #F5F5F5
+  BorderColor #666666
+  FontSize 13
+}
+
+start
+partition "Log in — index.html / doLogin()" {
+  :Open index.html;
+  repeat
+    :User enters login and password;
+    :Browser sends POST Login.php\n{login, password};
+    :PHP queries Users for matching\nLogin and Password;
+    :Browser receives login response;
+    if (Response id < 1?) then (yes)
+      :Display "User/Password\ncombination incorrect";
+    endif
+  repeat while (Response id < 1?) is (retry) not (valid id)
+  :Set userId, firstName, lastName;\nsaveCookie() with 20-minute expiry;
+  :Navigate to color.html;\nreadCookie() restores identity;
+}
+
+partition "Manage colors — color.html" {
+  repeat
+    :User chooses an action;
+    switch (Chosen action?)
+    case (Add color)
+      :User enters a color name;
+      :Browser sends POST AddColor.php\n{color, userId};
+      :PHP inserts Colors(UserId, Name)\nusing supplied userId and color;
+      :API returns JSON error field;\nempty string on normal completion;
+      :On HTTP 200, browser displays\n"Color has been added";
+      note right
+        The current browser does not inspect
+        the API's error field before showing success.
+      end note
+    case (Search colors)
+      :User enters search text;
+      :Browser sends POST SearchColors.php\n{search, userId};
+      :PHP queries Colors where\nName LIKE %search% AND UserID = userId;
+      if (Matching rows?) then (yes)
+        :API returns {results: [names], error: ""};
+        :On HTTP 200, browser displays\nretrieved message and color names;
+      else (no)
+        :API returns error "No Records Found"\nwithout a results array;
+        :Browser displays retrieved message,\nthen fails when reading results.length;
+        note right
+          This is the current empty-result behavior;
+          no friendly empty-state handler is implemented.
+        end note
+      endif
+    case (Log out)
+      :doLogout() resets browser identity\nand expires the cookie;
+    endswitch
+  repeat while (User chose logout?) is (no) not (yes)
+  :Navigate to index.html;
+}
+stop
+
+legend bottom
+  Follow arrows from the filled start circle to the final bullseye.
+  Rounded box = step. 
+  Diamond = decision or merge; labels select a branch.
+  Main workflow assumes requests complete with HTTP 200 and SQL execution succeeds.
+  Login.php returns id = 0 for invalid credentials or a database connection error.
+  readCookie() redirects to index.html when the parsed userId is below zero.
+  Other transport and database failure paths are outside this workflow's scope.
+endlegend
+@enduml
