@@ -5,7 +5,13 @@
 	$searchResults = "";
 	$searchCount = 0;
 
-	$conn = new mysqli("localhost", "TheBeast", "WeLoveCOP4331", "COP4331");
+	$conn = new mysqli(
+		getenv('COLORS_DB_HOST') ?: 'localhost',
+		getenv('COLORS_DB_USER') ?: 'TheBeast',
+		getenv('COLORS_DB_PASSWORD') ?: 'WeLoveCOP4331',
+		getenv('COLORS_DB_NAME') ?: 'COP4331',
+		(int)(getenv('COLORS_DB_PORT') ?: 3306)
+	);
 	if ($conn->connect_error) 
 	{
 		returnWithError( $conn->connect_error );

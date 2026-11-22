@@ -12,4 +12,11 @@ export default [
       globals: { ...globals.browser },
     },
   },
+  {
+    files: ["tests/**/*.js", "jest.config.cjs"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: { ...globals.node, ...globals.jest },
+    },
+  },
 ];
